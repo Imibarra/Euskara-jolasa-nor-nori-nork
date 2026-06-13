@@ -1,344 +1,632 @@
 <!DOCTYPE html>
 <html lang="eu">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aditza Galdetegia (Nor/Zer-Nori-Nork)</title>
-    <!-- Tailwind CSS CDN para el estilo y diseño responsivo -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React and ReactDOM CDNs -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <!-- Babel CDN para compilar JSX en el navegador -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <style>
-        /* Definición de la fuente Inter y estilos base */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Fondo gris claro */
-        }
-        /* Animación de entrada para una mejor experiencia de usuario */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-in {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aditz laguntzaileak · Nor/Zer-Nori-Nork</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-in {
+      animation: fadeIn 0.35s ease-out forwards;
+    }
+  </style>
 </head>
 <body>
+  <div id="root"></div>
 
-    <div id="root">
-        <!-- El componente React se renderizará aquí -->
-    </div>
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
 
-    <script type="text/babel">
-        // --- Dependencias de React ---
-        const { useState, useEffect, useCallback } = React;
+    const ikurrinaSvg = "https://upload.wikimedia.org/wikipedia/commons/2/2d/Flag_of_the_Basque_Country.svg";
 
-        // URL de la Ikurriña (Bandera Vasca)
-        const ikurrinaSvg = "https://upload.wikimedia.org/wikipedia/commons/2/2d/Flag_of_the_Basque_Country.svg";
+    const baseQuizData = [
+      { sentence: "Hark liburu bat niri ", correct: "dit", incorrect: ["dio", "dizu"], info: "Nor/Zer (hura) · Nori (niri) · Nork (hark) → dit" },
+      { sentence: "Nik loreak zuri ", correct: "dizkizut", incorrect: ["dizkiot", "dituzut"], info: "Nor/Zer (haiek) · Nori (zuri) · Nork (nik) → dizkizut" },
+      { sentence: "Zuk erantzuna hari ", correct: "diozu", incorrect: ["didazu", "diezu"], info: "Nor/Zer (hura) · Nori (hari) · Nork (zuk) → diozu" },
+      { sentence: "Guk zuri dirua ", correct: "dizugu", incorrect: ["diogu", "dizuet"], info: "Nor/Zer (hura) · Nori (zuri) · Nork (guk) → dizugu" },
+      { sentence: "Zuek arkatzak guri ", correct: "dizkiguzue", incorrect: ["dituzue", "dizkigute"], info: "Nor/Zer (haiek) · Nori (guri) · Nork (zuek) → dizkiguzue" },
+      { sentence: "Haiek hori guri ", correct: "digute", incorrect: ["dute", "diguzu"], info: "Nor/Zer (hura) · Nori (guri) · Nork (haiek) → digute" },
+      { sentence: "Nik laguntza haiei ", correct: "diet", incorrect: ["dizkiet", "diot"], info: "Nor/Zer (hura) · Nori (haiei) · Nork (nik) → diet" },
+      { sentence: "Zuk loreak guri ", correct: "dizkiguzu", incorrect: ["dizkigute", "diguzu"], info: "Nor/Zer (haiek) · Nori (guri) · Nork (zuk) → dizkiguzu" },
+      { sentence: "Zuk edaria niri ", correct: "didazu", incorrect: ["diezu", "diozu"], info: "Nor/Zer (hura) · Nori (niri) · Nork (zuk) → didazu" },
+      { sentence: "Nik opari bat zuri ", correct: "dizut", incorrect: ["diot", "diezu"], info: "Nor/Zer (hura) · Nori (zuri) · Nork (nik) → dizut" },
+      { sentence: "Hark giltzak niri ", correct: "dizkit", incorrect: ["ditu", "dit"], info: "Nor/Zer (haiek) · Nori (niri) · Nork (hark) → dizkit" },
+      { sentence: "Guk mezua zuei ", correct: "dizuegu", incorrect: ["dizuet", "diogu"], info: "Nor/Zer (hura) · Nori (zuei) · Nork (guk) → dizuegu" },
+      { sentence: "Zuek txartela niri ", correct: "didazue", incorrect: ["diguzue", "dit"], info: "Nor/Zer (hura) · Nori (niri) · Nork (zuek) → didazue" },
+      { sentence: "Haiek arraina zuri ", correct: "dizute", incorrect: ["diote", "didate"], info: "Nor/Zer (hura) · Nori (zuri) · Nork (haiek) → dizute" },
+      { sentence: "Hark liburuak guri ", correct: "dizkigu", incorrect: ["ditu", "dizkizue"], info: "Nor/Zer (haiek) · Nori (guri) · Nork (hark) → dizkigu" },
+      { sentence: "Nik eskutitzak hari ", correct: "dizkiot", incorrect: ["diet", "dizut"], info: "Nor/Zer (haiek) · Nori (hari) · Nork (nik) → dizkiot" },
+      { sentence: "Guk argazkiak hari ", correct: "dizkiogu", incorrect: ["diegu", "dizkiegu"], info: "Nor/Zer (haiek) · Nori (hari) · Nork (guk) → dizkiogu" },
+      { sentence: "Hark telefonoa zuei ", correct: "dizue", incorrect: ["die", "dit"], info: "Nor/Zer (hura) · Nori (zuei) · Nork (hark) → dizue" },
+      { sentence: "Zuek erlojuak hari ", correct: "dizkiozue", incorrect: ["dizkiogu", "diezue"], info: "Nor/Zer (haiek) · Nori (hari) · Nork (zuek) → dizkiozue" },
+      { sentence: "Haiek sarrerak niri ", correct: "dizkidate", incorrect: ["didate", "dizkizute"], info: "Nor/Zer (haiek) · Nori (niri) · Nork (haiek) → dizkidate" },
+      { sentence: "Haiek gauzak zuei ", correct: "dizkizuete", incorrect: ["dizuete", "dizkiete"], info: "Nor/Zer (haiek) · Nori (zuei) · Nork (haiek) → dizkizuete" },
+      { sentence: "Guk haiei zerbait ", correct: "diegu", incorrect: ["dizkiegu", "diogu"], info: "Nor/Zer (hura) · Nori (haiei) · Nork (guk) → diegu" },
+      { sentence: "Hark txakurra haiei ", correct: "die", incorrect: ["ditu", "dizkie"], info: "Nor/Zer (hura) · Nori (haiei) · Nork (hark) → die" },
+      { sentence: "Nik bizikleta hari ", correct: "diot", incorrect: ["diet", "diozu"], info: "Nor/Zer (hura) · Nori (hari) · Nork (nik) → diot" },
+      { sentence: "Haiek aulkiak zuei ", correct: "dizkizuete", incorrect: ["dizkigute", "diezue"], info: "Nor/Zer (haiek) · Nori (zuei) · Nork (haiek) → dizkizuete" },
+      { sentence: "Zuk botilak niri ", correct: "dizkidazu", incorrect: ["dizkizu", "dizkit"], info: "Nor/Zer (haiek) · Nori (niri) · Nork (zuk) → dizkidazu" },
+      { sentence: "Zuek mezua guri ", correct: "diguzue", incorrect: ["dizuet", "dizkiguzue"], info: "Nor/Zer (hura) · Nori (guri) · Nork (zuek) → diguzue" },
+      { sentence: "Guk kamiseta hari ", correct: "diogu", incorrect: ["dizkiogu", "dizuet"], info: "Nor/Zer (hura) · Nori (hari) · Nork (guk) → diogu" },
+      { sentence: "Zuek opari bat guri ", correct: "diguzue", incorrect: ["dizue", "dizkiguzue"], info: "Nor/Zer (hura) · Nori (guri) · Nork (zuek) → diguzue" },
+      { sentence: "Zuk guri liburuak ", correct: "dizkiguzu", incorrect: ["diguzu", "dizkigu"], info: "Nor/Zer (haiek) · Nori (guri) · Nork (zuk) → dizkiguzu" },
+    ];
 
-        // --- Datos del Quiz (Las 30 preguntas) ---
-        // Estructura: {Parte 1 de la frase, Forma correcta del auxiliar, Opciones incorrectas, Explicación}
-        const quizData = [
-            { sentence: "Hark liburu bat niri ", correct: "dit", incorrect: ["dio", "dizu"], info: "Nor/Zer (hura) - Nori (niri) - Nork (hark) -> dit" },
-            { sentence: "Nik loreak zuri ", correct: "dizkizut", incorrect: ["dizkiot", "dituzut"], info: "Nor/Zer (haiek) - Nori (zuri) - Nork (nik) -> dizkizut" },
-            { sentence: "Zuk erantzuna hari ", correct: "diozu", incorrect: ["didazu", "diezu"], info: "Nor/Zer (hura) - Nori (hari) - Nork (zuk) -> diozu" },
-            { sentence: "Guk zuri dirua ", correct: "dizugu", incorrect: ["diogu", "dizuet"], info: "Nor/Zer (hura) - Nori (zuri) - Nork (guk) -> dizugu" },
-            { sentence: "Zuek arkatzak guri ", correct: "dizkiguzue", incorrect: ["dituzue", "dizkigute"], info: "Nor/Zer (haiek) - Nori (guri) - Nork (zuek) -> dizkiguzue" },
-            { sentence: "Haiek hori guri ", correct: "digute", incorrect: ["dute", "diguzu"], info: "Nor/Zer (hura) - Nori (guri) - Nork (haiek) -> digute" },
-            { sentence: "Nik laguntza haiei ", correct: "diet", incorrect: ["dizkiet", "diot"], info: "Nor/Zer (hura) - Nori (haiei) - Nork (nik) -> diet" },
-            { sentence: "Zuk loreak guri ", correct: "dizkiguzu", incorrect: ["dizkigute", "diguzu"], info: "Nor/Zer (haiek) - Nori (guri) - Nork (zuk) -> dizkiguzu" },
-            { sentence: "Zuk edaria niri ", correct: "didazu", incorrect: ["diezu", "diozu"], info: "Nor/Zer (hura) - Nori (niri) - Nork (zuk) -> didazu" },
-            { sentence: "Nik opari bat zuri ", correct: "dizut", incorrect: ["diot", "diezu"], info: "Nor/Zer (hura) - Nori (zuri) - Nork (nik) -> dizut" },
-            { sentence: "Hark giltzak niri ", correct: "dizkit", incorrect: ["ditu", "dit"], info: "Nor/Zer (haiek) - Nori (niri) - Nork (hark) -> dizkit" },
-            { sentence: "Guk mezua zuei ", correct: "dizuegu", incorrect: ["dizuet", "diogu"], info: "Nor/Zer (hura) - Nori (zuei) - Nork (guk) -> dizuegu" },
-            { sentence: "Zuek txartela niri ", correct: "didazue", incorrect: ["diguzue", "dit"], info: "Nor/Zer (hura) - Nori (niri) - Nork (zuek) -> didazue" },
-            { sentence: "Haiek arraina zuri ", correct: "dizute", incorrect: ["diote", "didate"], info: "Nor/Zer (hura) - Nori (zuri) - Nork (haiek) -> dizute" },
-            { sentence: "Hark liburuak guri ", correct: "dizkigu", incorrect: ["ditu", "dizkizue"], info: "Nor/Zer (haiek) - Nori (guri) - Nork (hark) -> dizkigu" },
-            { sentence: "Nik eskutitzak hari ", correct: "dizkiot", incorrect: ["diet", "dizut"], info: "Nor/Zer (haiek) - Nori (hari) - Nork (nik) -> dizkiot" },
-            { sentence: "Guk argazkiak hari ", correct: "dizkiogu", incorrect: ["diegu", "dizkiegu"], info: "Nor/Zer (haiek) - Nori (hari) - Nork (guk) -> dizkiogu" },
-            { sentence: "Hark telefonoa zuei ", correct: "dizue", incorrect: ["die", "dit"], info: "Nor/Zer (hura) - Nori (zuei) - Nork (hark) -> dizue" },
-            { sentence: "Zuek erlojuak hari ", correct: "dizkiozue", incorrect: ["dizkiogu", "diezue"], info: "Nor/Zer (haiek) - Nori (hari) - Nork (zuek) -> dizkiozue" },
-            { sentence: "Haiek sarrerak niri ", correct: "dizkidate", incorrect: ["didate", "dizkizute"], info: "Nor/Zer (haiek) - Nori (niri) - Nork (haiek) -> dizkidate" },
-            { sentence: "Haiek gauzak zuei ", correct: "dizkizuete", incorrect: ["dizuete", "dizkiete"], info: "Nor/Zer (haiek) - Nori (zuei) - Nork (haiek) -> dizkizuete" },
-            { sentence: "Guk haiei zerbait ", correct: "diegu", incorrect: ["dizkiegu", "diogu"], info: "Nor/Zer (hura) - Nori (haiei) - Nork (guk) -> diegu" },
-            { sentence: "Hark txakurra haiei ", correct: "die", incorrect: ["ditu", "dizkie"], info: "Nor/Zer (hura) - Nori (haiei) - Nork (hark) -> die" },
-            { sentence: "Nik bizikleta hari ", correct: "diot", incorrect: ["diet", "diozu"], info: "Nor/Zer (hura) - Nori (hari) - Nork (nik) -> diot" },
-            { sentence: "Haiek aulkiak zuei ", correct: "dizkizuete", incorrect: ["dizkigute", "diezue"], info: "Nor/Zer (haiek) - Nori (zuei) - Nork (haiek) -> dizkizuete" },
-            { sentence: "Zuk botilak niri ", correct: "dizkidazu", incorrect: ["dizkizu", "dizkit"], info: "Nor/Zer (haiek) - Nori (niri) - Nork (zuk) -> dizkidazu" },
-            { sentence: "Zuek mezua guri ", correct: "diguzue", incorrect: ["dizuet", "dizkiguzue"], info: "Nor/Zer (hura) - Nori (guri) - Nork (zuek) -> diguzue" },
-            { sentence: "Guk kamiseta hari ", correct: "diogu", incorrect: ["dizkiogu", "dizuet"], info: "Nor/Zer (hura) - Nori (hari) - Nork (guk) -> diogu" },
-            { sentence: "Zuek opari bat guri ", correct: "diguzue", incorrect: ["dizue", "dizkiguzue"], info: "Nor/Zer (hura) - Nori (guri) - Nork (zuek) -> diguzue" },
-            { sentence: "Zuk guri liburuak ", correct: "dizkiguzu", incorrect: ["diguzu", "dizkigu"], info: "Nor/Zer (haiek) - Nori (guri) - Nork (zuk) -> dizkiguzu" },
-        ];
+    const quizData = baseQuizData.map((question, index) => ({
+      ...question,
+      id: index + 1,
+    }));
 
-        // Función utilitaria para mezclar arrays
-        const shuffleArray = (array) => {
-            const newArray = [...array];
-            for (let i = newArray.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    const modeConfig = {
+      practice: {
+        name: "Praktika",
+        emoji: "🧠",
+        description: "Erantzun ondoren zuzenketa eta azalpena berehala ikusiko dituzu.",
+        immediateFeedback: true,
+        showScoreDuringGame: true,
+      },
+      exam: {
+        name: "Azterketa",
+        emoji: "📝",
+        description: "Amaierara arte ez duzu zuzenketarik ikusiko.",
+        immediateFeedback: false,
+        showScoreDuringGame: false,
+      },
+      review: {
+        name: "Akatsen errepasoa",
+        emoji: "🔁",
+        description: "Azken saiakeran huts egindako galderak bakarrik landuko dituzu.",
+        immediateFeedback: true,
+        showScoreDuringGame: true,
+      },
+    };
+
+    const shuffleArray = (array) => {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
+    };
+
+    const cleanQuestionPool = (questionPool) => questionPool.map(({ selected, isCorrect, ...question }) => question);
+
+    const App = () => {
+      const [screen, setScreen] = useState("menu");
+      const [mode, setMode] = useState(null);
+      const [questions, setQuestions] = useState([]);
+      const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+      const [score, setScore] = useState(0);
+      const [feedback, setFeedback] = useState(null);
+      const [selectedOption, setSelectedOption] = useState(null);
+      const [shuffledOptions, setShuffledOptions] = useState([]);
+      const [mistakes, setMistakes] = useState([]);
+      const [lastMistakes, setLastMistakes] = useState([]);
+      const [answers, setAnswers] = useState([]);
+
+      const currentQuestion = questions[currentQuestionIndex];
+      const totalQuestions = questions.length;
+      const progress = totalQuestions > 0
+        ? Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100)
+        : 0;
+      const currentModeConfig = mode ? modeConfig[mode] : null;
+
+      const startQuiz = useCallback((nextMode, questionPool = quizData) => {
+        if (nextMode === "review" && questionPool.length === 0) return;
+
+        const newQuestions = shuffleArray(cleanQuestionPool(questionPool));
+        setMode(nextMode);
+        setQuestions(newQuestions);
+        setCurrentQuestionIndex(0);
+        setScore(0);
+        setFeedback(null);
+        setSelectedOption(null);
+        setShuffledOptions([]);
+        setMistakes([]);
+        setAnswers([]);
+        setScreen("quiz");
+      }, []);
+
+      const goToMenu = useCallback(() => {
+        setScreen("menu");
+        setMode(null);
+        setQuestions([]);
+        setCurrentQuestionIndex(0);
+        setFeedback(null);
+        setSelectedOption(null);
+        setShuffledOptions([]);
+      }, []);
+
+      useEffect(() => {
+        if (screen === "quiz" && currentQuestion) {
+          setShuffledOptions(shuffleArray([currentQuestion.correct, ...currentQuestion.incorrect]));
+          setFeedback(null);
+          setSelectedOption(null);
+        }
+      }, [screen, currentQuestionIndex, currentQuestion]);
+
+      const handleAnswerClick = useCallback((option) => {
+        if (selectedOption || !currentQuestion || !currentModeConfig) return;
+
+        const isCorrect = option === currentQuestion.correct;
+        const answerRecord = { ...currentQuestion, selected: option, isCorrect };
+
+        setSelectedOption(option);
+        setAnswers(prevAnswers => [...prevAnswers, answerRecord]);
+
+        if (isCorrect) {
+          setScore(prevScore => prevScore + 1);
+          if (currentModeConfig.immediateFeedback) setFeedback("correct");
+        } else {
+          setMistakes(prevMistakes => [...prevMistakes, answerRecord]);
+          if (currentModeConfig.immediateFeedback) setFeedback("incorrect");
+        }
+      }, [selectedOption, currentQuestion, currentModeConfig]);
+
+      const finishQuiz = useCallback(() => {
+        setLastMistakes(mistakes);
+        setScreen("results");
+      }, [mistakes]);
+
+      const handleNext = useCallback(() => {
+        if (!selectedOption) return;
+
+        const nextIndex = currentQuestionIndex + 1;
+        if (nextIndex < totalQuestions) {
+          setCurrentQuestionIndex(nextIndex);
+        } else {
+          finishQuiz();
+        }
+      }, [selectedOption, currentQuestionIndex, totalQuestions, finishQuiz]);
+
+      useEffect(() => {
+        const handleKeyDown = (event) => {
+          if (event.repeat) return;
+
+          if (screen === "menu") {
+            if (event.key === "1") startQuiz("practice");
+            if (event.key === "2") startQuiz("exam");
+            if (event.key === "3" && lastMistakes.length > 0) startQuiz("review", lastMistakes);
+            return;
+          }
+
+          if (screen === "results") {
+            if (event.key.toLowerCase() === "m") goToMenu();
+            if (event.key.toLowerCase() === "r" && mode) startQuiz(mode, mode === "review" ? lastMistakes : quizData);
+            if (event.key.toLowerCase() === "a" && mistakes.length > 0) startQuiz("review", mistakes);
+            return;
+          }
+
+          if (screen === "quiz") {
+            if (event.key.toLowerCase() === "m") {
+              goToMenu();
+              return;
             }
-            return newArray;
+
+            if (!selectedOption) {
+              const optionNumber = Number(event.key);
+              if (optionNumber >= 1 && optionNumber <= shuffledOptions.length) {
+                handleAnswerClick(shuffledOptions[optionNumber - 1]);
+              }
+              return;
+            }
+
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              handleNext();
+            }
+          }
         };
 
-        // Componente principal de la aplicación
-        const App = () => {
-            // Estado para el manejo del quiz
-            const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-            const [score, setScore] = useState(0);
-            const [feedback, setFeedback] = useState(null); // null, 'correct', 'incorrect'
-            const [selectedOption, setSelectedOption] = useState(null);
-            const [shuffledOptions, setShuffledOptions] = useState([]);
-            const [quizCompleted, setQuizCompleted] = useState(false);
-            const [displayQuizData, setDisplayQuizData] = useState([]);
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+      }, [screen, selectedOption, shuffledOptions, handleAnswerClick, handleNext, startQuiz, goToMenu, lastMistakes, mistakes, mode]);
 
-            // Inicializa la data mezclada al inicio (solo una vez)
-            useEffect(() => {
-                setDisplayQuizData(shuffleArray(quizData));
-            }, []);
+      const getButtonClasses = (option) => {
+        const baseClasses = "w-full py-3 px-4 rounded-xl font-semibold transition duration-200 shadow-lg text-lg border-2 focus:outline-none focus:ring-4 ";
 
-            // Selecciona, mezcla las opciones, y reinicia el feedback para la pregunta actual
-            const setupQuestion = useCallback(() => {
-                if (currentQuestionIndex < displayQuizData.length) {
-                    const currentQ = displayQuizData[currentQuestionIndex];
-                    
-                    if (currentQ) {
-                        // Juntamos la opción correcta con las incorrectas
-                        const allOptions = [currentQ.correct, ...currentQ.incorrect];
-                        // Mezclamos las opciones
-                        setShuffledOptions(shuffleArray(allOptions));
-                        setFeedback(null);
-                        setSelectedOption(null);
-                    }
-                }
-            }, [currentQuestionIndex, displayQuizData]);
+        if (!selectedOption) {
+          return baseClasses + "bg-gray-200 hover:bg-gray-300 active:bg-gray-400 border-gray-300 text-gray-800 focus:ring-red-200";
+        }
 
-            // Ejecutamos setupQuestion al cambiar de índice o al cargar la data
-            useEffect(() => {
-                if (displayQuizData.length > 0) {
-                   setupQuestion();
-                }
-            }, [setupQuestion, displayQuizData]);
+        if (!currentModeConfig.immediateFeedback) {
+          if (option === selectedOption) {
+            return baseClasses + "bg-blue-100 border-blue-500 text-blue-800 ring-4 ring-blue-200";
+          }
+          return baseClasses + "bg-gray-100 border-gray-300 text-gray-500 opacity-60";
+        }
 
-            // Maneja la selección del usuario
-            const handleAnswerClick = (option) => {
-                if (selectedOption) return; // Evita doble click
+        if (option === currentQuestion.correct) {
+          return baseClasses + "bg-green-200 border-green-500 text-green-800 ring-4 ring-green-300";
+        }
 
-                setSelectedOption(option);
+        if (option === selectedOption) {
+          return baseClasses + "bg-red-200 border-red-500 text-red-800 ring-4 ring-red-300";
+        }
 
-                // Comprobamos la respuesta
-                if (option === displayQuizData[currentQuestionIndex].correct) {
-                    setScore(prevScore => prevScore + 1);
-                    setFeedback('correct');
-                } else {
-                    setFeedback('incorrect');
-                }
-            };
+        return baseClasses + "bg-gray-100 border-gray-300 text-gray-500 opacity-60";
+      };
 
-            // Pasa a la siguiente pregunta o finaliza el quiz
-            const handleNext = () => {
-                const nextIndex = currentQuestionIndex + 1;
-                if (nextIndex < displayQuizData.length) {
-                    setCurrentQuestionIndex(nextIndex);
-                } else {
-                    setQuizCompleted(true);
-                }
-            };
+      const getResultMessage = (percentage) => {
+        if (percentage < 50) {
+          return {
+            text: "Ez etsi. Akatsak errepasatu eta berriro saiatu.",
+            color: "text-red-600 border-red-600",
+            emoji: "📚",
+          };
+        }
 
-            // Reinicia el quiz a su estado inicial
-            const handleRestart = () => {
-                // Mezcla los datos de nuevo para un nuevo quiz
-                setDisplayQuizData(shuffleArray(quizData));
-                setCurrentQuestionIndex(0);
-                setScore(0);
-                setQuizCompleted(false);
-                setFeedback(null);
-                setSelectedOption(null);
-                setShuffledOptions([]);
-            };
+        if (percentage < 80) {
+          return {
+            text: "Ondo egina. Bide onean zaude.",
+            color: "text-orange-600 border-orange-600",
+            emoji: "🌟",
+          };
+        }
 
-            if (displayQuizData.length === 0) {
-                 return <div className="flex justify-center items-center h-screen text-xl text-gray-600">Kargatzen... (Cargando...)</div>;
-            }
+        return {
+          text: "Zorionak! Lan bikaina egin duzu.",
+          color: "text-green-600 border-green-600",
+          emoji: "🎉",
+        };
+      };
 
-            const currentQuestion = displayQuizData[currentQuestionIndex];
-            const totalQuestions = displayQuizData.length;
-
-            // --- Vista de Resultados (Quiz Completado) ---
-            if (quizCompleted) {
-                const percentage = (score / totalQuestions) * 100;
-                let resultMessage = "Zorionak! Bikain lan egin duzu!"; // Felicidades! Has trabajado excelentemente!
-                let resultColor = 'text-green-600 border-green-600';
-                let resultEmoji = '🎉';
-                
-                if (percentage < 50) {
-                    resultMessage = "Ez etsi. Berriz saiatu! (¡No te rindas! ¡Vuelve a intentarlo!)";
-                    resultColor = 'text-red-600 border-red-600';
-                    resultEmoji = '📚';
-                } else if (percentage < 80) {
-                    resultMessage = "Ondo egina. Jarraitu horrela! (Bien hecho. ¡Sigue así!)";
-                    resultColor = 'text-orange-600 border-orange-600';
-                    resultEmoji = '🌟';
-                }
-
-                return (
-                    <div className="flex flex-col items-center justify-center p-8 bg-white shadow-2xl rounded-xl max-w-lg mx-auto w-full text-center border-t-8 border-red-600 animate-in">
-                        <span className={`text-6xl mb-4 ${resultColor}`}>{resultEmoji}</span>
-                        <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Galdetegia Amaituta</h2>
-                        <p className={`text-xl font-semibold mb-4 ${resultColor}`}>{resultMessage}</p>
-                        <p className="text-xl text-gray-700 mb-6">
-                            Zure azken puntuazioa: (Tu puntuación final):
-                        </p>
-                        <p className={`text-6xl font-black mb-8 ${resultColor}`}>
-                            {score} / {totalQuestions}
-                        </p>
-                        <button
-                            onClick={handleRestart}
-                            className="flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-md text-white bg-red-600 hover:bg-red-700 transition duration-150 ease-in-out"
-                        >
-                            🔄 Galdetegia Berrabiarazi (Reiniciar Quiz)
-                        </button>
-                    </div>
-                );
-            }
-
-            // --- Lógica de Clases para Botones de Opciones ---
-            const getButtonClasses = (option) => {
-                let classes = 'w-full py-3 px-4 rounded-xl font-semibold transition duration-200 shadow-lg text-lg border-2 ';
-
-                if (!selectedOption) {
-                    // Estado normal
-                    classes += 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 border-gray-300 text-gray-800';
-                } else {
-                    // Estado después de seleccionar
-                    if (option === currentQuestion.correct) {
-                        // Respuesta Correcta
-                        classes += 'bg-green-200 border-green-500 text-green-800 ring-4 ring-green-300 pointer-events-none';
-                    } else if (option === selectedOption) {
-                        // Respuesta Incorrecta (seleccionada)
-                        classes += 'bg-red-200 border-red-500 text-red-800 ring-4 ring-red-300 pointer-events-none';
-                    } else {
-                        // Opciones no seleccionadas
-                        classes += 'bg-gray-100 border-gray-300 text-gray-500 pointer-events-none opacity-60';
-                    }
-                }
-                return classes;
-            };
-
-            // --- Vista de la Pregunta Actual ---
-            return (
-                <div className="min-h-screen bg-gray-100 p-4 sm:p-8 flex items-start justify-center">
-                    <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 border-t-8 border-red-600 animate-in">
-                        
-                        {/* Encabezado */}
-                        <div className="p-6 sm:p-8 bg-red-600 text-white flex items-center justify-between">
-                            <div className="flex-1">
-                                <h1 className="text-3xl font-bold mb-1">Euskera: Aditza Galdetegia</h1>
-                                <p className="text-red-300 text-sm">Auxiliar Nor/Zer-Nori-Nork (Orain) - 30 galdera</p>
-                            </div>
-                            <img src={ikurrinaSvg} alt="Ikurriña" className="w-16 h-auto ml-4 rounded-lg shadow-lg" />
-                        </div>
-
-                        {/* Progreso y Puntuación */}
-                        <div className="px-6 py-4 flex justify-between items-center text-lg font-medium bg-gray-200 text-gray-800 border-b border-gray-300">
-                            <span>Galdera: {currentQuestionIndex + 1} / {totalQuestions}</span>
-                            <span className="flex items-center">
-                              ✅ Puntuazioa: {score}
-                            </span>
-                        </div>
+      const renderQuestionText = (question, answer = "...") => (
+        <span>
+          {question.sentence}
+          <span className="text-gray-900 font-bold mx-1">eman</span>
+          <span className="text-red-700 font-extrabold underline decoration-dashed decoration-2 underline-offset-4 mx-1">{answer}</span>.
+        </span>
+      );
 
 
-                        {/* Contenido principal de la pregunta */}
-                        <div className="p-6 sm:p-8">
-                          
-                          {/* Frase con el hueco */}
-                          <div className="mb-8 p-6 bg-yellow-50 rounded-xl shadow-inner border-l-4 border-red-400">
-                            <p className="text-xl sm:text-2xl font-light text-gray-800 leading-relaxed">
-                              {currentQuestion.sentence}
-                              
-                              {/* El verbo principal que requiere el auxiliar (ej. eman) */}
-                              <span className="text-gray-900 font-bold mx-1">
-                                eman
-                              </span>
-                              
-                              <span className="text-red-700 font-extrabold underline decoration-dashed decoration-2 underline-offset-4 mx-1">
-                                {/* Muestra la opción seleccionada o puntos suspensivos */}
-                                {selectedOption ? selectedOption : '...'}
-                              </span>
-                              .
-                            </p>
-                            <p className="mt-2 text-sm text-gray-500">
-                                Aukeratu aditz laguntzaile zuzena (Elige el auxiliar correcto).
-                            </p>
-                          </div>
+      const parseQuestionInfo = (info) => {
+        const match = info.match(/Nor\/Zer \(([^)]+)\) · Nori \(([^)]+)\) · Nork \(([^)]+)\) → (.+)$/);
 
-                          {/* Opciones de respuesta */}
-                          <div className="grid gap-4 mb-6">
-                            {shuffledOptions.map((option, index) => (
-                              <button
-                                key={index}
-                                onClick={() => handleAnswerClick(option)}
-                                className={getButtonClasses(option)}
-                                disabled={!!selectedOption}
-                              >
-                                {option}
-                              </button>
-                            ))}
-                          </div>
+        if (!match) {
+          return null;
+        }
 
-                          {/* Feedback de la respuesta y Explicación */}
-                          {feedback && (
-                            <div className={`p-4 rounded-xl mb-4 border-l-4 ${feedback === 'correct' ? 'bg-green-100 border-green-600 text-green-800' : 'bg-red-100 border-red-600 text-red-800'} animate-in`}>
-                              <div className="flex items-center font-medium">
-                                <span>
-                                  {feedback === 'correct' ? '✔️ Zuzena! (¡Correcto!)' : '❌ Okerra. (Incorrecto.)'}
-                                </span>
-                              </div>
-                              <p className="mt-2 text-sm">
-                                <span className="font-bold">Azalpena (Explicación):</span> {currentQuestion.info}
-                              </p>
-                            </div>
-                          )}
-                          
-                          {/* Botón Siguiente / Ver Resultados */}
-                          <button
-                            onClick={handleNext}
-                            disabled={!selectedOption}
-                            className={`w-full flex items-center justify-center mt-6 px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-xl transition duration-150 ease-in-out ${
-                              selectedOption
-                                ? 'bg-red-600 hover:bg-red-700 text-white transform hover:scale-[1.01]'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            }`}
-                          >
-                            {currentQuestionIndex + 1 === totalQuestions ? (
-                                <>
-                                    🏆 Emaitzak Ikusi (Ver Resultados)
-                                </>
-                            ) : (
-                                <>
-                                    Hurrengo Galdera (Siguiente Pregunta)
-                                    ➔
-                                </>
-                            )}
-                          </button>
-                          
-                        </div>
-                    </div>
+        return {
+          norZer: match[1],
+          nori: match[2],
+          nork: match[3],
+          result: match[4],
+        };
+      };
+
+      const renderExpandedExplanation = (question, selectedAnswer = null) => {
+        const parsed = parseQuestionInfo(question.info);
+
+        if (!parsed) {
+          return <p className="mt-3 text-sm leading-relaxed">{question.info}</p>;
+        }
+
+        const objectTip = parsed.norZer === "haiek"
+          ? "Nor/Zer plurala da. Horregatik aditz laguntzaileak pluraltasuna markatu behar du; forma askotan -zki- zatia agertzen da."
+          : "Nor/Zer singularra da. Horregatik ez da pluraleko -zki- marka behar.";
+
+        return (
+          <div className="mt-3 space-y-3 text-sm leading-relaxed">
+            <p>Galdera hau egiteko, begiratu beti hiru atalak ordena berean:</p>
+            <ol className="list-decimal pl-5 space-y-2">
+              <li>
+                <span className="font-bold">Nor/Zer:</span> {parsed.norZer}.
+                <span className="block text-gray-700">Horrek adierazten du zer ematen den.</span>
+              </li>
+              <li>
+                <span className="font-bold">Nori:</span> {parsed.nori}.
+                <span className="block text-gray-700">Horrek adierazten du nork jasotzen duen.</span>
+              </li>
+              <li>
+                <span className="font-bold">Nork:</span> {parsed.nork}.
+                <span className="block text-gray-700">Horrek adierazten du ekintza nork egiten duen.</span>
+              </li>
+            </ol>
+
+            <p>{objectTip}</p>
+
+            {selectedAnswer && selectedAnswer !== question.correct && (
+              <p>
+                Zuk aukeratutako <span className="font-bold text-red-700">{selectedAnswer}</span> forma antzekoa izan daiteke,
+                baina ez dator bat esaldiko hiru elementuekin batera: <span className="font-semibold">{parsed.norZer}</span>,
+                <span className="font-semibold"> {parsed.nori}</span> eta <span className="font-semibold">{parsed.nork}</span>.
+              </p>
+            )}
+
+            <p>
+              Beraz, forma egokia <span className="font-black text-green-700">{question.correct}</span> da.
+            </p>
+          </div>
+        );
+      };
+
+      if (screen === "menu") {
+        return (
+          <main className="min-h-screen bg-gray-100 p-4 sm:p-8 flex items-start justify-center">
+            <section className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden border-t-8 border-red-600 animate-in">
+              <header className="p-6 sm:p-8 bg-red-600 text-white flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <h1 className="text-3xl font-bold mb-1">Aditz laguntzaileak</h1>
+                  <p className="text-red-100 text-sm">Nor/Zer-Nori-Nork · Orainaldia · 30 galdera</p>
                 </div>
-            );
-        };
+                <img src={ikurrinaSvg} alt="Ikurriña" className="w-16 h-auto rounded-lg shadow-lg" loading="lazy" />
+              </header>
 
-        // Renderiza la aplicación en el DOM
-        const container = document.getElementById('root');
-        const root = ReactDOM.createRoot(container);
-        root.render(<App />);
-    </script>
+              <div className="p-6 sm:p-8">
+                <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Aukeratu modua</h2>
+                <p className="text-gray-600 mb-6">Erabili botoiak edo teklatuko zenbakiak.</p>
+
+                <div className="grid gap-4">
+                  <button
+                    type="button"
+                    onClick={() => startQuiz("practice")}
+                    className="text-left p-5 rounded-2xl border-2 border-gray-200 bg-gray-50 hover:bg-red-50 hover:border-red-300 focus:outline-none focus:ring-4 focus:ring-red-200 transition"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-xl font-black text-gray-900">1 · {modeConfig.practice.emoji} {modeConfig.practice.name}</span>
+                      <span className="text-sm font-bold text-red-700">1</span>
+                    </div>
+                    <p className="mt-2 text-gray-600">{modeConfig.practice.description}</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => startQuiz("exam")}
+                    className="text-left p-5 rounded-2xl border-2 border-gray-200 bg-gray-50 hover:bg-red-50 hover:border-red-300 focus:outline-none focus:ring-4 focus:ring-red-200 transition"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-xl font-black text-gray-900">2 · {modeConfig.exam.emoji} {modeConfig.exam.name}</span>
+                      <span className="text-sm font-bold text-red-700">2</span>
+                    </div>
+                    <p className="mt-2 text-gray-600">{modeConfig.exam.description}</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => startQuiz("review", lastMistakes)}
+                    disabled={lastMistakes.length === 0}
+                    className={`text-left p-5 rounded-2xl border-2 focus:outline-none focus:ring-4 transition ${
+                      lastMistakes.length > 0
+                        ? "border-gray-200 bg-gray-50 hover:bg-red-50 hover:border-red-300 focus:ring-red-200"
+                        : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-xl font-black">3 · {modeConfig.review.emoji} {modeConfig.review.name}</span>
+                      <span className="text-sm font-bold">3</span>
+                    </div>
+                    <p className="mt-2">{lastMistakes.length > 0 ? modeConfig.review.description : "Oraindik ez dago akatsik errepasatzeko."}</p>
+                  </button>
+                </div>
+              </div>
+            </section>
+          </main>
+        );
+      }
+
+      if (!currentQuestion || !currentModeConfig) {
+        return <div className="flex justify-center items-center h-screen text-xl text-gray-600">Kargatzen...</div>;
+      }
+
+      if (screen === "results") {
+        const percentage = Math.round((score / totalQuestions) * 100);
+        const result = getResultMessage(percentage);
+
+        return (
+          <main className="min-h-screen bg-gray-100 p-4 sm:p-8 flex items-start justify-center">
+            <section className="flex flex-col items-center p-8 bg-white shadow-2xl rounded-xl max-w-2xl mx-auto w-full text-center border-t-8 border-red-600 animate-in">
+              <span className={`text-6xl mb-4 ${result.color}`} aria-hidden="true">{result.emoji}</span>
+              <p className="text-sm font-bold text-red-700 mb-2">{currentModeConfig.name}</p>
+              <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Emaitzak</h1>
+              <p className={`text-xl font-semibold mb-6 ${result.color}`}>{result.text}</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-8">
+                <div className="rounded-xl bg-gray-100 p-5">
+                  <p className="text-sm font-bold text-gray-500 uppercase tracking-wide">Puntuazioa</p>
+                  <p className={`text-5xl font-black ${result.color}`}>{score} / {totalQuestions}</p>
+                </div>
+                <div className="rounded-xl bg-gray-100 p-5">
+                  <p className="text-sm font-bold text-gray-500 uppercase tracking-wide">Ehunekoa</p>
+                  <p className={`text-5xl font-black ${result.color}`}>{percentage}%</p>
+                </div>
+              </div>
+
+              {mistakes.length > 0 ? (
+                <div className="w-full text-left mb-8 bg-red-50 border border-red-200 rounded-xl p-4">
+                  <h2 className="text-lg font-bold text-red-800 mb-3">Errepasatzeko galderak</h2>
+                  <ul className="space-y-3">
+                    {mistakes.map((mistake, index) => (
+                      <li key={`${mistake.id}-${index}`} className="text-sm text-gray-800 border-b border-red-100 pb-3 last:border-b-0">
+                        <p className="font-semibold">{renderQuestionText(mistake)}</p>
+                        <p className="mt-1">Zure erantzuna: <span className="text-red-700 font-bold">{mistake.selected}</span></p>
+                        <p>Erantzun zuzena: <span className="text-green-700 font-bold">{mistake.correct}</span></p>
+                        <p className="text-gray-600">Azalpena: {mistake.info}</p>
+                        <details className="mt-2 rounded-lg bg-white border border-red-100 p-3">
+                          <summary className="cursor-pointer font-bold text-red-800">Azalpen luzea zabaldu</summary>
+                          {renderExpandedExplanation(mistake, mistake.selected)}
+                        </details>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="w-full text-left mb-8 bg-green-50 border border-green-200 rounded-xl p-4">
+                  <h2 className="text-lg font-bold text-green-800">Ez dago akatsik errepasatzeko.</h2>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+                <button
+                  type="button"
+                  onClick={() => startQuiz(mode, mode === "review" ? lastMistakes : quizData)}
+                  className="px-5 py-3 rounded-full shadow-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300 transition font-semibold"
+                >
+                  Berriro hasi · R
+                </button>
+
+                <button
+                  type="button"
+                  onClick={goToMenu}
+                  className="px-5 py-3 rounded-full shadow-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-4 focus:ring-red-200 transition font-semibold"
+                >
+                  Hasierako menura · M
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => startQuiz("review", mistakes)}
+                  disabled={mistakes.length === 0}
+                  className={`px-5 py-3 rounded-full shadow-md focus:outline-none focus:ring-4 transition font-semibold ${
+                    mistakes.length > 0
+                      ? "text-white bg-gray-800 hover:bg-gray-900 focus:ring-gray-300"
+                      : "text-gray-400 bg-gray-200 cursor-not-allowed"
+                  }`}
+                >
+                  Akatsak landu · A
+                </button>
+              </div>
+            </section>
+          </main>
+        );
+      }
+
+      return (
+        <main className="min-h-screen bg-gray-100 p-4 sm:p-8 flex items-start justify-center">
+          <section className="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 border-t-8 border-red-600 animate-in">
+            <header className="p-6 sm:p-8 bg-red-600 text-white flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <p className="text-red-100 text-sm font-bold mb-1">{currentModeConfig.emoji} {currentModeConfig.name}</p>
+                <h1 className="text-3xl font-bold mb-1">Aditz laguntzaileak</h1>
+                <p className="text-red-100 text-sm">Nor/Zer-Nori-Nork · Orainaldia</p>
+              </div>
+              <img src={ikurrinaSvg} alt="Ikurriña" className="w-16 h-auto rounded-lg shadow-lg" loading="lazy" />
+            </header>
+
+            <div className="px-6 py-4 bg-gray-200 text-gray-800 border-b border-gray-300">
+              <div className="flex justify-between items-center text-lg font-medium mb-3">
+                <span>Galdera: {currentQuestionIndex + 1} / {totalQuestions}</span>
+                <span>
+                  {currentModeConfig.showScoreDuringGame
+                    ? `✅ Puntuazioa: ${score}`
+                    : "Puntuazioa amaieran"}
+                </span>
+              </div>
+              <div className="h-3 bg-gray-300 rounded-full overflow-hidden" aria-label={`Aurrerapena: ${progress}%`}>
+                <div className="h-full bg-red-600 transition-all duration-300" style={{ width: `${progress}%` }}></div>
+              </div>
+            </div>
+
+            <div className="p-6 sm:p-8">
+              <div className="mb-5 flex justify-end">
+                <button
+                  type="button"
+                  onClick={goToMenu}
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-full text-sm font-bold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 focus:outline-none focus:ring-4 focus:ring-red-200 transition"
+                >
+                  ← Hasierako menura · M
+                </button>
+              </div>
+
+              <div className="mb-8 p-6 bg-yellow-50 rounded-xl shadow-inner border-l-4 border-red-400">
+                <p className="text-xl sm:text-2xl font-light text-gray-800 leading-relaxed">
+                  {renderQuestionText(currentQuestion, selectedOption || "...")}
+                </p>
+                <p className="mt-2 text-sm text-gray-500">
+                  Aukeratu aditz laguntzaile zuzena. Teklatua: 1, 2 edo 3. Menura itzultzeko: M.
+                </p>
+              </div>
+
+              <div className="grid gap-4 mb-6" role="group" aria-label="Erantzun aukerak">
+                {shuffledOptions.map((option, index) => (
+                  <button
+                    type="button"
+                    key={option}
+                    onClick={() => handleAnswerClick(option)}
+                    className={getButtonClasses(option)}
+                    disabled={!!selectedOption}
+                    aria-pressed={selectedOption === option}
+                  >
+                    <span className="text-gray-500 mr-2">{index + 1}.</span>{option}
+                  </button>
+                ))}
+              </div>
+
+              {currentModeConfig.immediateFeedback && feedback && (
+                <div
+                  aria-live="polite"
+                  className={`p-4 rounded-xl mb-4 border-l-4 ${feedback === "correct" ? "bg-green-100 border-green-600 text-green-800" : "bg-red-100 border-red-600 text-red-800"} animate-in`}
+                >
+                  <p className="font-medium">
+                    {feedback === "correct" ? "✔️ Zuzena!" : "❌ Okerra."}
+                  </p>
+
+                  {feedback === "incorrect" && (
+                    <p className="mt-2 text-sm">
+                      <span className="font-bold">Erantzun zuzena:</span> {currentQuestion.correct}
+                    </p>
+                  )}
+
+                  <p className="mt-2 text-sm">
+                    <span className="font-bold">Azalpena:</span> {currentQuestion.info}
+                  </p>
+
+                  {feedback === "incorrect" && (
+                    <details className="mt-3 rounded-lg bg-white/70 border border-red-200 p-3">
+                      <summary className="cursor-pointer font-bold text-red-800">Azalpen luzea zabaldu</summary>
+                      {renderExpandedExplanation(currentQuestion, selectedOption)}
+                    </details>
+                  )}
+                </div>
+              )}
+
+              {!currentModeConfig.immediateFeedback && selectedOption && (
+                <div aria-live="polite" className="p-4 rounded-xl mb-4 border-l-4 bg-blue-50 border-blue-500 text-blue-800 animate-in">
+                  <p className="font-medium">Erantzuna gordeta.</p>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={!selectedOption}
+                className={`w-full flex items-center justify-center mt-6 px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-xl transition duration-150 ease-in-out focus:outline-none focus:ring-4 ${
+                  selectedOption
+                    ? "bg-red-600 hover:bg-red-700 text-white transform hover:scale-[1.01] focus:ring-red-300"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
+              >
+                {currentQuestionIndex + 1 === totalQuestions
+                  ? "🏆 Emaitzak ikusi · Enter"
+                  : "Hurrengo galdera · Enter"}
+              </button>
+            </div>
+          </section>
+        </main>
+      );
+    };
+
+    const container = document.getElementById("root");
+    const root = ReactDOM.createRoot(container);
+    root.render(<App />);
+  </script>
 </body>
 </html>
